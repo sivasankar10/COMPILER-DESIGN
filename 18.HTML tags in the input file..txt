@@ -1,0 +1,46 @@
+%{
+#include <stdio.h>
+%}
+
+%option noyywrap
+
+DIGIT       [0-9]
+ALPHA       [a-zA-Z]
+NON_ZERO    [1-9]
+EXPONENT    [Ee][+-]?{DIGIT}+
+FLOAT_SUFFIX    [fFlL]
+INT_SUFFIX      [uUlL]*
+
+%%
+
+{NON_ZERO}{DIGIT}*{INT_SUFFIX}?                    { printf("Integer Constant: %s\n", yytext); }
+0{DIGIT}+{INT_SUFFIX}?                             { printf("Integer Constant: %s\n", yytext); }
+{DIGIT}+{EXPONENT}?{FLOAT_SUFFIX}?                 { printf("Floating Constant: %s\n", yytext); }
+{DIGIT}+\.{DIGIT}+{EXPONENT}?{FLOAT_SUFFIX}?       { printf("Floating Constant: %s\n", yytext); }
+\'([^\\\n]|(\\.))*?\'                              { printf("Character Constant: %s\n", yytext); }
+\"([^\\\n]|(\\.))*?\"                              { printf("String Literal: %s\n", yytext); }
+
+.                                                   { /* Ignore other characters */ }
+
+%%
+
+int main(int argc, char *argv[]) {
+    FILE *file;
+    if (argc < 2) {
+        printf("Usage: %s <input_file>\n", argv[0]);
+        return 1;
+    }
+
+    file = fopen(argv[1], "r");
+    if (!file) {
+        printf("Error opening file.\n");
+        return 1;
+    }
+
+    yyin = file;
+    yylex();
+
+    fclose(file);
+
+    return 0;
+}
